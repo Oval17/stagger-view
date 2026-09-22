@@ -94,27 +94,26 @@ export class ImageViewer extends Component<{}, ImageViewerState> {
 
   private async preloadImages(currentIndex: number): Promise<void> {
     const preloadUrls = this.imageService.getPreloadUrls(currentIndex);
-    
-    // Preload in service worker
+
+    // Single owner: SW cache when the worker is controlling the page,
+    // otherwise the main-thread Cache API fallback (same cache name).
     if (this.swManager.isReady()) {
       await this.swManager.preloadImages(preloadUrls);
+    } else {
+      await this.imageCache.preloadImages(preloadUrls);
     }
-    
-    // Also preload in main thread cache
-    await this.imageCache.preloadImages(preloadUrls);
   }
 
   private async cleanupCache(currentIndex: number): Promise<void> {
-    const totalImages = this.imageService.getTotalImageCount();
-    
-    // Cleanup in service worker
+    // Keep window is derived once from ImageService — no duplicated URL pattern.
+    const keepUrls = this.imageService.getPreloadUrls(currentIndex);
+
     if (this.swManager.isReady()) {
-      await this.swManager.cleanupCache(currentIndex, totalImages);
+      await this.swManager.cleanupCache(keepUrls);
+    } else {
+      await this.imageCache.cleanupUrls(keepUrls);
     }
-    
-    // Cleanup in main thread cache
-    await this.imageCache.cleanupCache(currentIndex, totalImages);
-    
+
     this.updateCacheSize();
   }
 

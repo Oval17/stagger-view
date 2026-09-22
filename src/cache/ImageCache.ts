@@ -62,6 +62,26 @@ export class ImageCache {
     await Promise.allSettled(promises);
   }
 
+  public async cleanupUrls(keepUrls: string[]): Promise<void> {
+    if (!('caches' in window)) {
+      return;
+    }
+
+    try {
+      const cache = await caches.open(this.cacheName);
+      const keys = await cache.keys();
+      const keep = new Set(keepUrls);
+
+      for (const request of keys) {
+        if (!keep.has(request.url)) {
+          await cache.delete(request);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to cleanup cache:', error);
+    }
+  }
+
   public async cleanupCache(currentIndex: number, totalImages: number): Promise<void> {
     if (!('caches' in window)) {
       return;
