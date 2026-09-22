@@ -28,7 +28,10 @@ export class ServiceWorkerManager {
 
   async sendMessage(message: SwMessage): Promise<void> {
     const target = this.controller();
-    if (!target) return;
+    if (!target) {
+      console.warn('Service Worker not ready, skipping message:', message.type);
+      return;
+    }
     try {
       target.postMessage(message);
     } catch (error) {

@@ -8,8 +8,6 @@ interface CacheMessage {
   url?: string;
   urls?: string[];
   keepUrls?: string[];
-  currentIndex?: number;
-  totalImages?: number;
 }
 
 (self as any).addEventListener('install', (event: any) => {
@@ -82,22 +80,24 @@ async function handleImageRequest(request: Request): Promise<Response> {
 
 (self as any).addEventListener('message', (event: any) => {
   const message: CacheMessage = event.data;
-  
+
   switch (message.type) {
     case 'CACHE_IMAGE':
       if (message.url) {
-        cacheImage(message.url);
+        event.waitUntil(cacheImage(message.url));
       }
       break;
-      
+
     case 'PRELOAD_IMAGES':
       if (message.urls) {
-        preloadImages(message.urls);
+        event.waitUntil(preloadImages(message.urls));
       }
       break;
-      
+
     case 'CLEANUP_CACHE':
-      void cleanupCache(message.keepUrls ?? []);
+      // Guard: old pages (pre keepUrls protocol) send no list — never wipe on undefined.
+      if (!Array.isArray(message.keepUrls)) return;
+      event.waitUntil(cleanupCache(message.keepUrls));
       break;
   }
 });
