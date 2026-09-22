@@ -49,3 +49,19 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 } 
+.install-button {
+  margin: 12px auto 0;
+  display: block;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.install-button:hover {
+  background: #2563eb;
+}

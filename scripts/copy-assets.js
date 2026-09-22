@@ -25,8 +25,13 @@ for (const parts of files) {
 for (const parts of dirs) {
   const src = path.join(root, ...parts);
   const dest = path.join(root, 'dist', ...parts.slice(1));
+  if (!fs.existsSync(src)) {
+    console.error(`copy-assets: missing dir ${src}`);
+    process.exit(1);
+  }
   fs.mkdirSync(dest, { recursive: true });
   for (const entry of fs.readdirSync(src)) {
+    if (!entry.endsWith('.png')) continue;
     fs.copyFileSync(path.join(src, entry), path.join(dest, entry));
   }
   console.log(`copy-assets: ${src}/ -> ${dest}/`);

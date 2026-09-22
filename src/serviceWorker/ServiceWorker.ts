@@ -25,6 +25,7 @@ interface CacheMessage {
           '/manifest.json',
           '/icons/icon-192.png',
           '/icons/icon-512.png',
+          '/icons/icon-maskable-512.png',
         ])
       )
       .catch((err: unknown) => console.warn('SW install: app-shell pre-cache failed (offline?)', err))

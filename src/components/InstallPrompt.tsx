@@ -33,9 +33,18 @@ export function InstallPrompt() {
   if (installed || !deferred) return null;
 
   const install = async () => {
-    await deferred.prompt();
-    const { outcome } = await deferred.userChoice;
-    if (outcome === 'accepted') setDeferred(null);
+    // prompt() is single-use per beforeinstallprompt event: capture, clear
+    // state first (a second click must be a no-op, not a throw), then prompt.
+    const d = deferred;
+    if (!d) return;
+    setDeferred(null);
+    try {
+      await d.prompt();
+      await d.userChoice;
+    } catch {
+      // prompt dismissed or unavailable — button stays hidden until the
+      // browser fires beforeinstallprompt again.
+    }
   };
 
   return (
