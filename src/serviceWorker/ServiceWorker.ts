@@ -15,7 +15,9 @@ interface CacheMessage {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache: any) => cache.addAll(['/', '/index.html', '/bundle.js']))
+      // NB: bundle filename may be hashed — precache only the stable
+      // app-shell entries; hashed JS is cached on first fetch.
+      .then((cache: any) => cache.addAll(['/', '/index.html']))
       .catch((err: unknown) => console.warn('SW install: app-shell pre-cache failed (offline?)', err))
   );
 });
@@ -129,7 +131,8 @@ async function cleanupCache(keepUrls: string[]): Promise<void> {
     const keep = new Set<string>(keepUrls);
 
     for (const request of keys) {
-      // Match by full URL or bare URL (Cache API may store either form)
+      // Exact match: keepUrls come from the same ImageService generator,
+      // so Cache API URLs and keep-list URLs share the same form.
       if (!keep.has(request.url)) {
         await imageCache.delete(request);
       }

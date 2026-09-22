@@ -82,18 +82,6 @@ export class ImageCache {
     }
   }
 
-  public async cleanupCache(currentIndex: number, totalImages: number): Promise<void> {
-    // Legacy index-based entry point — delegates to keep-list version.
-    // (Callers should prefer cleanupUrls with ImageService.getPreloadUrls.)
-    const keepStart = Math.max(0, currentIndex - 5);
-    const keepEnd = Math.min(totalImages - 1, currentIndex + 5);
-    const keep: string[] = [];
-    for (let i = keepStart; i <= keepEnd; i++) {
-      keep.push(`https://picsum.photos/800/600?random=${i}`);
-    }
-    await this.cleanupUrls(keep);
-  }
-
   public async getCacheSize(): Promise<number> {
     if (!('caches' in window)) {
       return 0;

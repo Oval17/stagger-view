@@ -23,7 +23,11 @@ export class ServiceWorkerManager {
   }
 
   private controller(): ServiceWorker | null {
-    return navigator.serviceWorker.controller ?? this.swRegistration?.active ?? null;
+    // Only a controlling worker can intercept fetches. registration.active
+    // may exist before it controls (first visit) — messaging it would
+    // populate the cache without any fetch ever hitting it, while skipping
+    // the main-thread fallback. So require controller.
+    return navigator.serviceWorker.controller ?? null;
   }
 
   async sendMessage(message: SwMessage): Promise<void> {
