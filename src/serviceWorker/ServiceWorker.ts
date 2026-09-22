@@ -17,7 +17,17 @@ interface CacheMessage {
       .open(CACHE_NAME)
       // NB: bundle filename may be hashed — precache only the stable
       // app-shell entries; hashed JS is cached on first fetch.
-      .then((cache: any) => cache.addAll(['/', '/index.html']))
+      .then((cache: any) =>
+        cache.addAll([
+          '/',
+          '/index.html',
+          '/bundle.js',
+          '/manifest.json',
+          '/icons/icon-192.png',
+          '/icons/icon-512.png',
+          '/icons/icon-maskable-512.png',
+        ])
+      )
       .catch((err: unknown) => console.warn('SW install: app-shell pre-cache failed (offline?)', err))
   );
 });

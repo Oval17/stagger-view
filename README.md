@@ -2,6 +2,21 @@
 
 A React TypeScript application that demonstrates advanced image loading with service worker caching and staggered loading techniques.
 
+## PWA
+
+Installable: `manifest.json` + icons (`public/icons/`) are copied to `dist/` by
+`npm run copy-assets`, precached by the service worker, and an in-app
+**Install app** button appears when the browser fires `beforeinstallprompt`.
+
+## Lighthouse (local `dist` build, Lighthouse 13, 2026-09-22)
+
+| Performance | Accessibility | Best practices | SEO |
+|---|---|---|---|
+| 80 | 96 | 96 | 100 |
+
+LCP 4.8s / TBT 70ms / CLS 0.091 — LCP is the remote Picsum image itself
+(first paint 0.6s, JS bundle 178KB); offline + caching behavior unchanged.
+
 ## Features
 
 - **Service Worker Integration**: Handles image caching and preloading in the background
