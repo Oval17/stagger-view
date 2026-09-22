@@ -7,45 +7,42 @@ interface CacheMessage {
   type: 'CACHE_IMAGE' | 'GET_CACHED_IMAGE' | 'PRELOAD_IMAGES' | 'CLEANUP_CACHE';
   url?: string;
   urls?: string[];
-  currentIndex?: number;
-  totalImages?: number;
+  keepUrls?: string[];
 }
 
 (self as any).addEventListener('install', (event: any) => {
-  console.log('Service Worker installing...');
+  (self as any).skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache: any) => {
-      console.log('Service Worker cache opened');
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/bundle.js'
-      ]);
-    })
+    caches
+      .open(CACHE_NAME)
+      .then((cache: any) => cache.addAll(['/', '/index.html', '/bundle.js']))
+      .catch((err: unknown) => console.warn('SW install: app-shell pre-cache failed (offline?)', err))
   );
 });
 
 (self as any).addEventListener('activate', (event: any) => {
-  console.log('Service Worker activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames: string[]) => {
-      return Promise.all(
-        cacheNames.map((cacheName: string) => {
-          if (cacheName !== CACHE_NAME && cacheName !== IMAGE_CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then((cacheNames: string[]) =>
+        Promise.all(
+          cacheNames.map((cacheName: string) => {
+            if (cacheName !== CACHE_NAME && cacheName !== IMAGE_CACHE_NAME) {
+              return caches.delete(cacheName);
+            }
+            return Promise.resolve(false);
+          })
+        )
+      )
+      .then(() => (self as any).clients?.claim())
   );
 });
 
 (self as any).addEventListener('fetch', (event: any) => {
   const url = new URL(event.request.url);
-  
-  // Handle image requests
-  if (url.pathname.includes('picsum.photos') || event.request.destination === 'image') {
+
+  // Handle image requests (Picsum thumbs + generic images)
+  if (url.hostname.includes('picsum.photos') || event.request.destination === 'image') {
     event.respondWith(handleImageRequest(event.request));
     return;
   }
@@ -83,24 +80,24 @@ async function handleImageRequest(request: Request): Promise<Response> {
 
 (self as any).addEventListener('message', (event: any) => {
   const message: CacheMessage = event.data;
-  
+
   switch (message.type) {
     case 'CACHE_IMAGE':
       if (message.url) {
-        cacheImage(message.url);
+        event.waitUntil(cacheImage(message.url));
       }
       break;
-      
+
     case 'PRELOAD_IMAGES':
       if (message.urls) {
-        preloadImages(message.urls);
+        event.waitUntil(preloadImages(message.urls));
       }
       break;
-      
+
     case 'CLEANUP_CACHE':
-      if (message.currentIndex !== undefined && message.totalImages !== undefined) {
-        cleanupCache(message.currentIndex, message.totalImages);
-      }
+      // Guard: old pages (pre keepUrls protocol) send no list — never wipe on undefined.
+      if (!Array.isArray(message.keepUrls)) return;
+      event.waitUntil(cleanupCache(message.keepUrls));
       break;
   }
 });
@@ -125,25 +122,16 @@ async function preloadImages(urls: string[]): Promise<void> {
   await Promise.allSettled(promises);
 }
 
-async function cleanupCache(currentIndex: number, totalImages: number): Promise<void> {
+async function cleanupCache(keepUrls: string[]): Promise<void> {
   try {
     const imageCache = await caches.open(IMAGE_CACHE_NAME);
     const keys = await imageCache.keys();
-    
-    // Calculate which images to keep (current ± 5)
-    const keepStart = Math.max(0, currentIndex - 5);
-    const keepEnd = Math.min(totalImages - 1, currentIndex + 5);
-    
-    const urlsToKeep = new Set<string>();
-    for (let i = keepStart; i <= keepEnd; i++) {
-      urlsToKeep.add(`https://picsum.photos/800/600?random=${i}`);
-    }
+    const keep = new Set<string>(keepUrls);
 
-    // Remove images that are not in the keep range
     for (const request of keys) {
-      if (!urlsToKeep.has(request.url)) {
+      // Match by full URL or bare URL (Cache API may store either form)
+      if (!keep.has(request.url)) {
         await imageCache.delete(request);
-        console.log('Service Worker removed from cache:', request.url);
       }
     }
   } catch (error) {

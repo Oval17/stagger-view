@@ -62,7 +62,7 @@ export class ImageCache {
     await Promise.allSettled(promises);
   }
 
-  public async cleanupCache(currentIndex: number, totalImages: number): Promise<void> {
+  public async cleanupUrls(keepUrls: string[]): Promise<void> {
     if (!('caches' in window)) {
       return;
     }
@@ -70,27 +70,28 @@ export class ImageCache {
     try {
       const cache = await caches.open(this.cacheName);
       const keys = await cache.keys();
-      
-      // Calculate which images to keep (current ± 5)
-      const keepStart = Math.max(0, currentIndex - 5);
-      const keepEnd = Math.min(totalImages - 1, currentIndex + 5);
-      
-      const urlsToKeep = new Set<string>();
-      for (let i = keepStart; i <= keepEnd; i++) {
-        // This would need to be adapted based on your image URL pattern
-        urlsToKeep.add(`https://picsum.photos/800/600?random=${i}`);
-      }
+      const keep = new Set(keepUrls);
 
-      // Remove images that are not in the keep range
       for (const request of keys) {
-        if (!urlsToKeep.has(request.url)) {
+        if (!keep.has(request.url)) {
           await cache.delete(request);
-          console.log(`Removed from cache: ${request.url}`);
         }
       }
     } catch (error) {
       console.error('Failed to cleanup cache:', error);
     }
+  }
+
+  public async cleanupCache(currentIndex: number, totalImages: number): Promise<void> {
+    // Legacy index-based entry point — delegates to keep-list version.
+    // (Callers should prefer cleanupUrls with ImageService.getPreloadUrls.)
+    const keepStart = Math.max(0, currentIndex - 5);
+    const keepEnd = Math.min(totalImages - 1, currentIndex + 5);
+    const keep: string[] = [];
+    for (let i = keepStart; i <= keepEnd; i++) {
+      keep.push(`https://picsum.photos/800/600?random=${i}`);
+    }
+    await this.cleanupUrls(keep);
   }
 
   public async getCacheSize(): Promise<number> {
