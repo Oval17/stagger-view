@@ -7,7 +7,7 @@
     "build": "npm run build-sw && webpack --mode production && npm run copy-sw",
     "build-sw": "webpack --config webpack.sw.config.js --mode production",
     "build-dev": "npm run build-sw && webpack --mode development && npm run copy-sw",
-    "copy-sw": "node -e \"require('fs').copyFileSync('public/service-worker.js','dist/service-worker.js')\"",
+    "copy-sw": "node scripts/copy-sw.js",
     "lint": "eslint . --ext .ts,.tsx",
     "preview": "serve dist",
     "clean": "rm -rf dist public/service-worker.js"
