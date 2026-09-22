@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "webpack serve --mode development",
-    "build": "npm run build-sw && webpack --mode production && npm run copy-sw",
+    "build": "npm run build-sw && webpack --mode production && npm run copy-assets",
     "build-sw": "webpack --config webpack.sw.config.js --mode production",
-    "build-dev": "npm run build-sw && webpack --mode development && npm run copy-sw",
-    "copy-sw": "node scripts/copy-sw.js",
+    "build-dev": "npm run build-sw && webpack --mode development && npm run copy-assets",
     "lint": "eslint . --ext .ts,.tsx",
     "preview": "serve dist",
-    "clean": "rm -rf dist public/service-worker.js"
+    "clean": "rm -rf dist public/service-worker.js",
+    "copy-assets": "node scripts/copy-assets.js"
   },
   "dependencies": {
     "react": "^18.2.0",
