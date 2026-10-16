@@ -108,11 +108,17 @@ src/
 
 ## Build for Netlify
 
-The project is configured for easy deployment to Netlify:
+The project is configured for Netlify CI/CD via `netlify.toml`
+(build command `npm run build`, publish directory `dist`):
 
-1. Build the project: `npm run build`
-2. The `dist` folder contains the production build
-3. Drag and drop the `dist` folder to Netlify for deployment
+1. In Netlify: **Add new site → Import an existing project**, pick this repo.
+2. Netlify reads `netlify.toml`, builds on every push/merge to the
+   production branch, and deploys the `dist` folder.
+3. One-off deploys can still be done by building locally (`npm run build`)
+   and dragging `dist` into the Netlify dashboard.
+
+Note: `npm run dev` builds the service worker first, so caching and the
+PWA install prompt work in development too.
 
 ## How It Works
 

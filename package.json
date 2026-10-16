@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "webpack serve --mode development",
+    "dev": "npm run build-sw && webpack serve --mode development",
     "build": "npm run build-sw && webpack --mode production && npm run copy-assets",
     "build-sw": "webpack --config webpack.sw.config.js --mode production",
     "build-dev": "npm run build-sw && webpack --mode development && npm run copy-assets",
@@ -31,6 +31,7 @@
     "eslint-plugin-react": "^7.33.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "html-webpack-plugin": "^5.5.0",
+    "serve": "^14.2.6",
     "style-loader": "^3.3.0",
     "typescript": "^5.0.0",
     "webpack": "^5.88.0",
