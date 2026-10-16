@@ -12,12 +12,14 @@ interface ImageViewerState {
   cacheSize: number;
 }
 
-export class ImageViewer extends Component<{}, ImageViewerState> {
+type ImageViewerProps = Record<string, never>;
+
+export class ImageViewer extends Component<ImageViewerProps, ImageViewerState> {
   private imageService: ImageService;
   private swManager: ServiceWorkerManager;
   private imageCache: ImageCache;
 
-  constructor(props: {}) {
+  constructor(props: ImageViewerProps) {
     super(props);
     
     this.imageService = new ImageService();
